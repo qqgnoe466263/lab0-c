@@ -138,15 +138,19 @@ bool q_remove_head(queue_t *q, char *sp, size_t bufsize)
     list_ele_t *victim = q->head;
     q->head = q->head->next;
 
+    if (strlen(victim->value) < bufsize) {
+        bufsize = strlen(victim->value);
+    } else {
+        bufsize--;
+    }
+
     if (sp) {
-        memcpy(sp, victim->value, bufsize - 1);
-        sp[bufsize - 1] = '\x00';
+        memcpy(sp, victim->value, bufsize);
+        sp[bufsize] = '\x00';
     }
 
     free(victim->value);
     free(victim);
-    victim->value = NULL;
-    victim = NULL;
 
     if (--q->size == 0) {
         q->tail = q->head;
