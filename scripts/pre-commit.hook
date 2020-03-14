@@ -81,8 +81,10 @@ do
     fi
 done
 
+CPPCHECK_IGNORE="-ilinenoise.c"
+
 # static analysis
-$CPPCHECK $CPPCHECK_OPTS >/dev/null
+$CPPCHECK $CPPCHECK_IGNORE $CPPCHECK_OPTS >/dev/null
 if [ $? -ne 0 ]; then
     RETURN=1
     echo "" >&2

@@ -13,6 +13,8 @@
 #include <unistd.h>
 #include "dudect/fixture.h"
 
+#include "linenoise.h"
+
 /* Our program needs to use regular malloc/free */
 #define INTERNAL 1
 #include "harness.h"
@@ -76,6 +78,13 @@ static bool do_sort(int argc, char *argv[]);
 static bool do_show(int argc, char *argv[]);
 
 static void queue_init();
+
+void completion(const char *buf, linenoiseCompletions *lc)
+{
+    if (buf[0] == 'h') {
+        linenoiseAddCompletion(lc, "hello");
+    }
+}
 
 static void console_init()
 {
@@ -758,6 +767,8 @@ int main(int argc, char *argv[])
     queue_init();
     init_cmd();
     console_init();
+
+    linenoiseSetCompletionCallback(completion);
 
     set_verblevel(level);
     if (level > 1) {

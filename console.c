@@ -16,6 +16,8 @@
 #include "console.h"
 #include "report.h"
 
+#include "linenoise.h"
+
 /* Some global values */
 bool simulation = false;
 static cmd_ptr cmd_list = NULL;
@@ -580,15 +582,12 @@ int cmd_select(int nfds,
         return 0;
 
     if (!block_flag) {
-        /* Process any commands in input buffer */
         if (!readfds)
             readfds = &local_readset;
 
-        /* Add input fd to readset for select */
         infd = buf_stack->fd;
         FD_SET(infd, readfds);
         if (infd == STDIN_FILENO && prompt_flag) {
-            printf("%s", prompt);
             fflush(stdout);
             prompt_flag = true;
         }
@@ -599,20 +598,29 @@ int cmd_select(int nfds,
     if (nfds == 0)
         return 0;
 
-    int result = select(nfds, readfds, writefds, exceptfds, timeout);
-    if (result <= 0)
-        return result;
-
-    infd = buf_stack->fd;
-    if (readfds && FD_ISSET(infd, readfds)) {
-        /* Commandline input available */
-        FD_CLR(infd, readfds);
-        result--;
-        cmdline = readline();
-        if (cmdline)
+    if (infd == STDIN_FILENO) {
+        if (readfds && FD_ISSET(infd, readfds)) {
+            cmdline = linenoise(prompt);
+            int len = strlen(cmdline);
+            cmdline[len] = '\n';
+            cmdline[len + 1] = '\x00';
             interpret_cmd(cmdline);
+            free(cmdline);
+        }
+        return 0;
+    } else {
+        int result = select(nfds, readfds, writefds, exceptfds, timeout);
+        if (result <= 0)
+            return result;
+        if (readfds && FD_ISSET(infd, readfds)) {
+            FD_CLR(infd, readfds);
+            result--;
+            cmdline = readline();
+            if (cmdline)
+                interpret_cmd(cmdline);
+        }
+        return result;
     }
-    return result;
 }
 
 bool finish_cmd()
