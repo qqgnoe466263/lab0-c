@@ -220,7 +220,6 @@ list_ele_t *merge(list_ele_t *l1, list_ele_t *l2)
 
 
     return q;
-
 }
 
 list_ele_t *MergeSortList(list_ele_t *head)
@@ -269,5 +268,3 @@ void q_sort(queue_t *q)
         q->tail = q->tail->next;
     }
 }
-
-
